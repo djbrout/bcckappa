@@ -1,8 +1,8 @@
 
-def run_catalogue(mag_cut):
+def run_catalogue(mag_cut,file_dir="",OUTDIR="./out"):
 	#file_dir = "/data3/scratch/bcc_v1" 
-	file_dir = ""
-	OUTDIR = "./out"
+	#file_dir = ""
+	#OUTDIR = "./out"
 	title_in = ""
 
 	import numpy as np
@@ -55,5 +55,5 @@ def run_catalogue(mag_cut):
 	plt.title("Z_cut = 0.5")
 	fig.savefig("source_distribution.png")
 	
-	mytools.write_fits_table('foreground.fits', ['z','RA','DEC'], [zfg,RAfg,DECfg])
-	mytools.write_fits_table('background.fits', ['RA','DEC','S1','S2','W'], [RAbg,DECbg,E1bg,E2bg,weightsbg])
+	mytools.write_fits_table(OUTDIR+'foreground.fits', ['z','RA','DEC'], [zfg,RAfg,DECfg])
+	mytools.write_fits_table(OUTDIR+'background.fits', ['RA','DEC','S1','S2','W'], [RAbg,DECbg,E1bg,E2bg,weightsbg])

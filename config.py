@@ -1,6 +1,6 @@
 pixel_scale = 1.0 #size of the pixel in arc min 
-ipath = '/data3/data2/home/dbrout' #input directory
-opath = '.' #output directory
+ipath = '/data3/data2/home/dbrout/' #input directory
+opath = '/data3/data2/home/dbrout/bcckappa/out/' #output directory
 
 pipe = 'im3shape' # this is just for naming of output file
 filter = 'r' #this is just for naming of output file

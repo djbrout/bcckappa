@@ -9,6 +9,7 @@ from weighted_galkappa import WeightedGalKappa
 import sys
 
 def GenKappa(bg_f, fg_f):
+    print "WERE IN GENKAPPA"
     pixel_scale = c.pixel_scale #0.9375 # size of the pixel in arc min
     ipath = c.ipath
     opath = c.opath
@@ -35,6 +36,8 @@ def GenKappa(bg_f, fg_f):
     #                                   smooth_size, sign)
 
     #generating kappamap
+    sys.stdout.write(bg_f)
+    sys.stdout.write(ipath)
     k = ks.KappaMap(ipath, bg_f, opath, pixel_scale, skip=0, 
                  lens_quantity='shear', rotate=rotate, 
                  randomize=c.randomize,

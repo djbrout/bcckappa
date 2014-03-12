@@ -9,6 +9,7 @@ import scipy.signal as signal
 import scipy.ndimage.filters as filter
 import rdcol2
 import subprocess
+import config as c
 #import dillon_v2 as catalogue
 
 #Helper function to convolve with Gauss and write to new fits file
@@ -27,12 +28,12 @@ def convolve_maps(smoothing_grid,some_fit,some_map,filename,isFg):
 
             Mask_ma = trim_mask(SmoothMask)
             SmoothKappa_masked = np.ma.masked_array(SmoothKappa, mask=Mask_ma)
-            save_fits_image(SmoothKappa,filename+"_smooth"+str(sigma)+".fits")
-            save_fits_image(Mask_ma,"Mask_"+filename+"_smooth"+str(sigma)+".fits") 
+            save_fits_image(SmoothKappa,c.opath+filename+"_smooth"+str(sigma)+".fits")
+            save_fits_image(Mask_ma,c.opath+"Mask_"+filename+"_smooth"+str(sigma)+".fits") 
 
         else:
-            save_fits_image(some_map,filename+"_smooth"+str(sigma)+".fits")
-            save_fits_image(some_fit[-1].data,"Mask_"+filename+"_smooth"+str(sigma)+".fits")
+            save_fits_image(some_map,c.opath+filename+"_smooth"+str(sigma)+".fits")
+            save_fits_image(some_fit[-1].data,c.opath+"Mask_"+filename+"_smooth"+str(sigma)+".fits")
 
 def save_fits_image(image,filename):
     hdu = pf.PrimaryHDU(image)
@@ -48,9 +49,9 @@ def trim_mask(SmoothMask):
 
 def pcc(smoothing_grid,current_magcut,filename,f,config_smoothing,pixel_scale):
     for sigma in smoothing_grid:
-        fg_map_p = pf.open("fgmap_fg"+filename+"_smooth"+str(sigma)+".fits")
-        k_map_p = pf.open( "kappamap"+filename+"_smooth"+str(sigma)+".fits")
-        Masks = pf.open( "Mask_kappamap"+filename+"_smooth"+str(sigma)+".fits")
+        fg_map_p = pf.open(c.opath+"fgmap_fg"+filename+"_smooth"+str(sigma)+".fits")
+        k_map_p = pf.open(c.opath+"kappamap"+filename+"_smooth"+str(sigma)+".fits")
+        Masks = pf.open(c.opath+"Mask_kappamap"+filename+"_smooth"+str(sigma)+".fits")
 
         ff = np.ma.masked_array(fg_map_p[0].data.ravel(), mask=np.logical_not(Masks[0].data.ravel()))
         kk = np.ma.masked_array(k_map_p[0].data.ravel(), mask=np.logical_not(Masks[0].data.ravel()))
@@ -87,13 +88,15 @@ def edit_config(pixel_scale,smoothing):
 def run_ks_mapping():
     a = os.popen("/home/vinu/software/Python2.7/bin/python example2.py")
     
+    #a = os.popen("/home/vinu/software/Python2.7/bin/python example2.py")
+    
 def analyze_ks_output(filename,eff_smoothing_grid,mag_cut,config_smoothing,pix,f):
-    k_fit = pf.open("kappamap"+filename+".fits")
+    k_fit = pf.open(c.opath+"kappamap"+filename+".fits")
     k_map = k_fit[0].data
-    fg_fit = pf.open("fgmap_fg"+filename+".fits")
+    fg_fit = pf.open(c.opath+"fgmap_fg"+filename+".fits")
     
     #fg_map = fg_fit[0].data
-    fg_mapl = np.load("kappa_predicted_im3shape_r_1.0_0.5_g1.npz")
+    fg_mapl = np.load(c.opath+"kappa_predicted_im3shape_r_1.0_0.5_g1.fits")
     fg_map = fg_mapl['kappa']
     
     smoothing_grid = get_smoothing(eff_smoothing_grid,config_smoothing)
@@ -118,15 +121,15 @@ pix = 1.0
 zphot = False
 shape_noise = True
 if zphot:
-    import catalogue_zphot as catalogue
-    f = open('pcc_fgweighted_zphot_table.txt', 'w')
+    import create_catalogue_zphot as catalogue
+    f = open(c.opath+'pcc_fgweighted_zphot_table.txt', 'w')
 else:
     if shape_noise:
-        import catalogue_epsilon as catalogue
-        f = open('pcc_fgweighted_epsilon_table.txt','w')
+        import create_catalogue_epsilon as catalogue
+        f = open(c.opath+'pcc_fgweighted_epsilon_table.txt','w')
     else:
-        import dillon_v2 as catalogue
-        f = open('pcc_fgweighted_table.txt', 'w')
+        import create_catalogue as catalogue
+        f = open(c.opath+'pcc_fgweighted_table.txt', 'w')
     
 f.write('Pearson_Corr\t Mag_Cut\t Gauss_Smooth\t Pixel_Scale\n')
 
@@ -134,7 +137,7 @@ f.write('Pearson_Corr\t Mag_Cut\t Gauss_Smooth\t Pixel_Scale\n')
 mag_cut_grid = [23.0]
 for current_mag_cut in mag_cut_grid:
     print "Magnitude Cut: "+str(current_mag_cut)
-    catalogue.run_catalogue(current_mag_cut)
+    catalogue.run_catalogue(current_mag_cut,c.ipath,"/data3/data2/home/dbrout/")
     edit_config(pix,config_smoothing)
     run_ks_mapping()
     filename = "_im3shape_r_"+str(pix)+"_"+str(config_smoothing)+"_g1"

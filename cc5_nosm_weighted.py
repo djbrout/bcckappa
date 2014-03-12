@@ -9,7 +9,8 @@ import scipy.signal as signal
 import scipy.ndimage.filters as filter
 import rdcol2
 import subprocess
-import dillon_v2 as catalogue
+import create_catalogue as catalogue
+import config as c
 
 #Helper function to convolve with Gauss and write to new fits file
 def convolve_maps(smoothing_grid,some_fit,some_map,filename,isFg):
@@ -27,12 +28,12 @@ def convolve_maps(smoothing_grid,some_fit,some_map,filename,isFg):
 
         Mask_ma = trim_mask(SmoothMask)
         SmoothKappa_masked = np.ma.masked_array(SmoothKappa, mask=Mask_ma)
-        save_fits_image(SmoothKappa,filename+"_smooth"+str(sigma)+".fits")
-        save_fits_image(Mask_ma,"Mask_"+filename+"_smooth"+str(sigma)+".fits") 
+        save_fits_image(SmoothKappa,c.opath+filename+"_smooth"+str(sigma)+".fits")
+        save_fits_image(Mask_ma,c.opath+"Mask_"+filename+"_smooth"+str(sigma)+".fits") 
 
     else:
-        save_fits_image(some_map,filename+"_smooth"+str(sigma)+".fits")
-        save_fits_image(some_fit[-1].data,"Mask_"+filename+"_smooth"+str(sigma)+".fits")
+        save_fits_image(some_map,c.opath+filename+"_smooth"+str(sigma)+".fits")
+        save_fits_image(some_fit[-1].data,c.opath+"Mask_"+filename+"_smooth"+str(sigma)+".fits")
 
 def save_fits_image(image,filename):
     hdu = pf.PrimaryHDU(image)
@@ -49,9 +50,9 @@ def trim_mask(SmoothMask):
 def pcc(smoothing_grid,current_magcut,filename,f,config_smoothing,pixel_scale):
     #for sigma in smoothing_grid:
     sigma = smoothing_grid
-    fg_map_p = pf.open("fgmap_fg"+filename+"_smooth"+str(sigma)+".fits")
-    k_map_p = pf.open( "kappamap"+filename+"_smooth"+str(sigma)+".fits")
-    Masks = pf.open( "Mask_kappamap"+filename+"_smooth"+str(sigma)+".fits")
+    fg_map_p = pf.open(c.opath+"fgmap_fg"+filename+"_smooth"+str(sigma)+".fits")
+    k_map_p = pf.open(c.opath+"kappamap"+filename+"_smooth"+str(sigma)+".fits")
+    Masks = pf.open(c.opath+"Mask_kappamap"+filename+"_smooth"+str(sigma)+".fits")
         
     ff = np.ma.masked_array(fg_map_p[0].data.ravel(), mask=np.logical_not(Masks[0].data.ravel()))
     kk = np.ma.masked_array(k_map_p[0].data.ravel(), mask=np.logical_not(Masks[0].data.ravel()))
@@ -62,7 +63,7 @@ def pcc(smoothing_grid,current_magcut,filename,f,config_smoothing,pixel_scale):
     f.write(str(corr[0,1])+"\t"+str(current_magcut)+"\t"+str(np.sqrt(sigma**2+config_smoothing**2))+"\t"+str(pixel_scale)+"\n")
         
 def make_smooth_plots():
-    cols = rdcol2.read('pcc_fgweighted_table.txt',1,2)
+    cols = rdcol2.read(c.opath+'pcc_fgweighted_table.txt',1,2)
     fig = plt.figure()
     errs = []
     for magc in np.unique(cols["Mag_Cut"]):
@@ -82,7 +83,7 @@ def make_smooth_plots():
     fig.savefig("cc_vs_smoothing_weighted.png")
 
 def make_pix_plots():
-    cols = rdcol2.read('pcc_fgweighted_table.txt',1,2)
+    cols = rdcol2.read(c.opath+'pcc_fgweighted_table.txt',1,2)
     fig = plt.figure()
     errs = []
     for magc in np.unique(cols["Mag_Cut"]):
@@ -128,15 +129,15 @@ def edit_config(pixel_scale,smoothing):
 
 
 def run_ks_mapping():
-    a = os.popen("/home/vinu/software/Python2.7/bin/python example2.py")
+    a = os.popen("python example2.py")
     
 def analyze_ks_output(filename,eff_smoothing_grid,mag_cut,config_smoothing,pix,f):
-    k_fit = pf.open("kappamap"+filename+".fits")
+    k_fit = pf.open(c.opath+"kappamap"+filename+".fits")
     k_map = k_fit[0].data
-    fg_fit = pf.open("fgmap_fg"+filename+".fits")
+    fg_fit = pf.open(c.opath+"fgmap_fg"+filename+".fits")
     
     #fg_map = fg_fit[0].data
-    fg_mapl = np.load("kappa_predicted_im3shape_r_"+str(pix)+"_0.5_g1.npz")
+    fg_mapl = np.load(c.opath+"kappa_predicted_im3shape_r_"+str(pix)+"_0.5_g1.npz")
     fg_map = fg_mapl['kappa']
     
     smoothing_grid = get_smoothing(eff_smoothing_grid,config_smoothing)
@@ -150,7 +151,7 @@ def analyze_ks_output(filename,eff_smoothing_grid,mag_cut,config_smoothing,pix,f
 
 
 
-f = open('pcc_pix_fgweighted_table.txt', 'w')
+f = open(c.opath+'pcc_pix_fgweighted_table.txt', 'w')
 f.write('Pearson_Corr\t Mag_Cut\t Gauss_Smooth\t Pixel_Scale\n')
 
 #filename = "_im3shape_r_2.0_2.0_g1"
@@ -159,7 +160,7 @@ f.write('Pearson_Corr\t Mag_Cut\t Gauss_Smooth\t Pixel_Scale\n')
 
 config_smoothing = 0.5
 current_mag_cut = 999
-mag_cut_grid = [999,23,21]
+mag_cut_grid = [23]
 
 for mag in mag_cut_grid:
         pixel_scale_grid = [1.0,2.0,3.0,4.0,5.0,10.0,15.0,20.0,40.0,60.0]
