@@ -1,0 +1,48 @@
+\documentclass[12pt,preprint]{aastex}
+%\documentclass{article}
+\usepackage[margin=1.5cm]{geometry}
+
+
+\pdfoutput=1
+\usepackage{epstopdf}
+\usepackage{amsmath}
+\usepackage{comment} 
+\usepackage{appendix}
+\usepackage{subfigure}
+
+\usepackage{color}
+\newcommand{\xScale}{1.1}   % 1.1 for emulateapj
+\newcommand{\xxScale}{1.15}  % 1.15 for emulateapj
+
+\begin{document}
+\title{BCC Simulation Kappa x Foreground Maps // \small Dillon Brout, Vinu Vikram, Bhuvnesh Jain }
+
+\textbf{Smoothing}
+
+\textbf{Pixelization}
+
+
+\begin{comment}
+\begin{figure}
+\centering
+\epsscale{.5}  % 1.15 for emulateapj
+\plotone{abc.pdf}
+\caption{}
+\label{fig:abc}
+\end{figure}
+\end{comment}
+
+
+   
+
+
+
+\textbf{Conclusion}
+
+\bibitem[{Perlmutter {et~al.}(1999)}]{Saul99}
+Perlmutter, S. {et~al.} 1999, \apj, 517, 565
+
+
+
+
+\end{document}
