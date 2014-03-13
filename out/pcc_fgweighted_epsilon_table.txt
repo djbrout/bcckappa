@@ -1,0 +1,1 @@
+Pearson_Corr	 Mag_Cut	 Gauss_Smooth	 Pixel_Scale
