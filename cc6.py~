@@ -15,8 +15,9 @@ import config as c
 class cc:
     def __init__(self,config_smoothing = 0.5, pix = 1.0,
                  zphot = False, shape_noise = True,
-                 eff_smoothing_grid = [1.0]):
+                 eff_smoothing_grid = [1.0],current_magcut = None):
 
+        self.current_magcut = current_magcut
         self.zphot = zphot
         self.shape_noise = shape_noise
         self.config_smoothing = config_smoothing
@@ -41,7 +42,9 @@ class cc:
         
     #Helper function to convolve with Gauss and write to new fits file
     def convolve_maps(self,some_fit,some_map,updated_filename,isFg):
+        index = -1
         for sigma in self.return_smoothing_grid:
+            index += 1
             print sigma
             if sigma > 0:
                 if isFg:
@@ -53,14 +56,14 @@ class cc:
                     #SmoothKappa = filter.gaussian_filter(some_fit[0].data,sigma)
                     SmoothMask = filter.gaussian_filter(np.array(some_fit[2].data).astype("float"),sigma)    
 
-                    Mask_ma = trim_mask(SmoothMask)
-                    SmoothKappa_masked = np.ma.masked_array(SmoothKappa, mask=Mask_ma)
-                    self.save_fits_image(SmoothKappa,c.opath+updated_filename+"_smooth"+str(sigma)+".fits")
-                    self.save_fits_image(Mask_ma,c.opath+"Mask_"+updated_filename+"_smooth"+str(sigma)+".fits") 
+                Mask_ma = self.trim_mask(SmoothMask)
+                SmoothKappa_masked = np.ma.masked_array(SmoothKappa, mask=Mask_ma)
+                self.save_fits_image(SmoothKappa,c.opath+updated_filename+"_smooth"+str(self.eff_smoothing_grid[index])+".fits")
+                self.save_fits_image(Mask_ma,c.opath+"Mask_"+updated_filename+"_smooth"+str(self.eff_smoothing_grid[index])+".fits") 
                     
             else:
-                self.save_fits_image(some_map,c.opath+updated_filename+"_smooth"+str(sigma)+".fits")
-                self.save_fits_image(some_fit[-1].data,c.opath+"Mask_"+updated_filename+"_smooth"+str(sigma)+".fits")
+                self.save_fits_image(some_map,c.opath+updated_filename+"_smooth"+str(self.eff_smoothing_grid[index])+".fits")
+                self.save_fits_image(some_fit[-1].data,c.opath+"Mask_"+updated_filename+"_smooth"+str(self.eff_smoothing_grid[index])+".fits")
 
     def save_fits_image(self,image,filename):
         hdu = pf.PrimaryHDU(image)
@@ -86,7 +89,7 @@ class cc:
             corr = np.ma.corrcoef(ff,kk)
             print "Cross Corr np.ma:"
             print corr
-            f.write(str(corr[0,1])+"\t"+str(self.current_magcut)+"\t"+str(np.sqrt(sigma**2+self.config_smoothing**2))+"\t"+str(self.pix)+"\n")
+            self.f.write(str(corr[0,1])+"\t"+str(self.current_magcut)+"\t"+str(np.sqrt(sigma**2+self.config_smoothing**2))+"\t"+str(self.pix)+"\n")
 
     #get effective smoothing by adding in quadtrature
     def get_smoothing(self):
@@ -158,8 +161,8 @@ if __name__=='__main__':
         run_ks_mapping()
         filename = "_im3shape_r_"+str(pix)+"_"+str(config_smoothing)+"_g1"
         cc.filename = filename
-        cc.current_mag_cut = current_mag_cut
+        cc.current_magcut = current_mag_cut
         cc.movefiles()##Put files in out dir
         cc.analyze_ks_output()
-
+        os.system("mv ./out/density.npz "+c.bigfilepath+"density.npz")
     cc.f.close()
