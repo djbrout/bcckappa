@@ -58,12 +58,16 @@ class cc:
             print sigma
             if sigma > 0:
                 if isFg:
-                    SmoothKappa = filter.gaussian_filter(some_map,sigma)
-                    #SmoothKappa = filter.gaussian_filter(some_fit[0].data,sigma)
+                    if self.weighted:
+                        SmoothKappa = filter.gaussian_filter(some_map,sigma)
+                    else:
+                        SmoothKappa = filter.gaussian_filter(some_fit[0].data,sigma)
                     SmoothMask = filter.gaussian_filter(np.array(some_fit[1].data).astype("float"),sigma)
                 else:
-                    SmoothKappa = filter.gaussian_filter(some_map,sigma)
-                    #SmoothKappa = filter.gaussian_filter(some_fit[0].data,sigma)
+                    if self.weighted:
+                        SmoothKappa = filter.gaussian_filter(some_map,sigma)
+                    else:
+                        SmoothKappa = filter.gaussian_filter(some_fit[0].data,sigma)
                     SmoothMask = filter.gaussian_filter(np.array(some_fit[2].data).astype("float"),sigma)    
 
                 Mask_ma = self.trim_mask(SmoothMask)
@@ -106,13 +110,6 @@ class cc:
         #self.return_smoothing_grid = self.eff_smoothing_grid
         config_smoothing_grid = np.resize(self.config_smoothing,(len(self.eff_smoothing_grid)))
         self.eff_smoothing_grid = np.array(self.eff_smoothing_grid)
-        #index = -1
-        #for eff in self.eff_smoothing_grid:
-        #    print eff
-        #    print self.config_smoothing
-        #    print np.sqrt(eff**2 - self.config_smoothing**2)
-        #    index = index+1
-        #    self.return_smoothing_grid[index] = np.sqrt(eff**2 - self.config_smoothing**2)
         self.return_smoothing_grid = np.sqrt(self.eff_smoothing_grid**2 - config_smoothing_grid**2)
         return
     
@@ -139,9 +136,8 @@ class cc:
         os.system("mv kappamap"+self.filename+".fits "+c.opath+"kappamap"+self.filename+".fits")
         os.system("mv fgmap_fg"+self.filename+".fits "+c.opath+"fgmap_fg"+self.filename+".fits")
 
-    def run_pix_ks_mapping(pixel_scale_grid):
+    def run_pix_ks_mapping(self.pixel_scale_grid):
         for pix in pixel_scale_grid:
-            filename = "_im3shape_r_"+str(pix)+"_"+str(self.config_smoothing)+"_g1"
             print "Running KS_MAPPING.py for pixel size: "+str(pix)
             edit_config(pix,self.config_smoothing)
             self.filename = "_im3shape_r_"+str(pix)+"_"+str(self.config_smoothing)+"_g1"
@@ -149,16 +145,16 @@ class cc:
             self.analyze_ks_output()
         return
 
-    def run_smooth_ks_mapping():
+    def run_smooth_ks_mapping(self):
         edit_config(self.pix,self.config_smoothing)
-        run_ks_mapping()
+        self.run_ks_mapping()
         self.filename = "_im3shape_r_"+str(self.pix)+"_"+str(self.config_smoothing)+"_g1"
         self.movefiles()##Put files in out dir                                                          
         self.analyze_ks_output()
         os.system("mv ./out/density.npz "+c.bigfilepath+"density.npz")
         return
 
-    def run_ks_mapping():
+    def run_ks_mapping(self):
         if self.weighted:
             a = os.popen("/home/vinu/software/Python2.7/bin/python example_with_weights.py")
         else:
@@ -181,8 +177,6 @@ def edit_config(pixel_scale,smoothing):
 if __name__=='__main__':
     
     #THESE ARE THE PARAMETERS YOU CAN TWEAK!############################
-    eff_smoothing_grid = [0.5,0.75,1,1.5,2,4,8,15,20,30,40,50,60]
-    pixel_scale_grid = [1.0,2.0,3.0,4.0,5.0,10.0,15.0,20.0,40.0,60.0]
     config_smoothing = 0.5
     pix = 1.0
     zphot = False
@@ -191,6 +185,8 @@ if __name__=='__main__':
     mag_cut_grid = [23.0]
     
     pix_or_smooth = 'pix' #How do you want? Gaussian Smoothing or Pixelization?
+    eff_smoothing_grid = [0.5,0.75,1,1.5,2,4,8,15,20,30,40,50,60]#Only used if smoothing                                                                                                               
+    pixel_scale_grid = [1.0,2.0,3.0,4.0,5.0,10.0,15.0,20.0,40.0,60.0]#Only used if pixelizing 
     ####################################################################
     
     cc = cc(config_smoothing,pix,zphot,shape_noise,eff_smoothing_grid,weighted,

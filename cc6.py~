@@ -15,7 +15,7 @@ import config as c
 class cc:
     def __init__(self,config_smoothing = 0.5, pix = 1.0,
                  zphot = False, shape_noise = True,
-                 eff_smoothing_grid = [1.0],current_magcut = None):
+                 eff_smoothing_grid = [1.0],current_magcut = None,weighted=False):
 
         self.current_magcut = current_magcut
         self.zphot = zphot
@@ -23,20 +23,30 @@ class cc:
         self.config_smoothing = config_smoothing
         self.pix = pix
         self.eff_smoothing_grid = eff_smoothing_grid
-        
+        self.weighted = weighted
+
         if self.zphot:
             import create_catalogue_zphot as catalogue
             self.catalogue = catalogue
-            self.f = open(c.opath+'pcc_fgweighted_zphot_table.txt', 'w')
+            if self.weighted:
+                self.f = open(c.opath+'pcc_fgweighted_zphot_table.txt', 'w')
+            else:
+                self.f = open('pcc_zphot_table.txt', 'w')
         else:
             if self.shape_noise:
                 import create_catalogue_epsilon as catalogue
                 self.catalogue = catalogue
-                self.f = open(c.opath+'pcc_fgweighted_epsilon_table.txt','w')
+                if self.weighted:
+                    self.f = open(c.opath+'pcc_fgweighted_epsilon_table.txt','w')
+                else:
+                    self.f = open('pcc_epsilon_table.txt','w')
             else:
                 import create_catalogue as catalogue
                 self.catalogue = catalogue
-                self.f = open(c.opath+'pcc_fgweighted_table.txt', 'w')
+                if self.weighted:
+                    self.f = open(c.opath+'pcc_fgweighted_table.txt', 'w')
+                else:
+                    self.f = open('pcc_table.txt', 'w')
 
         self.f.write('Pearson_Corr\t Mag_Cut\t Gauss_Smooth\t Pixel_Scale\n')
         
@@ -112,10 +122,12 @@ class cc:
         k_map = k_fit[0].data
         fg_fit = pf.open(c.opath+"fgmap_fg"+self.filename+".fits")
         
-        #fg_map = fg_fit[0].data
-        fg_mapl = np.load(c.opath+"kappa_predicted"+self.filename+".npz")
-        fg_map = fg_mapl['kappa']
-        
+        if self.weighted:
+            fg_mapl = np.load(c.opath+"kappa_predicted"+self.filename+".npz")
+            fg_map = fg_mapl['kappa']
+        else:
+            fg_map = fg_fit[0].data
+            
         self.get_smoothing()
         
         self.convolve_maps(k_fit,k_map,"kappamap"+self.filename,False)
@@ -127,9 +139,31 @@ class cc:
         os.system("mv kappamap"+self.filename+".fits "+c.opath+"kappamap"+self.filename+".fits")
         os.system("mv fgmap_fg"+self.filename+".fits "+c.opath+"fgmap_fg"+self.filename+".fits")
 
-def run_ks_mapping():
-    a = os.popen("/home/vinu/software/Python2.7/bin/python example_with_weights.py")
-    #a = os.popen("/home/vinu/software/Python2.7/bin/python example2.py")    
+    def run_pix_ks_mapping(pixel_scale_grid):
+        for pix in pixel_scale_grid:
+            filename = "_im3shape_r_"+str(pix)+"_"+str(self.config_smoothing)+"_g1"
+            print "Running KS_MAPPING.py for pixel size: "+str(pix)
+            edit_config(pix,self.config_smoothing)
+            self.filename = "_im3shape_r_"+str(pix)+"_"+str(self.config_smoothing)+"_g1"
+            self.run_ks_mapping()
+            self.analyze_ks_output()
+        return
+
+    def run_smooth_ks_mapping():
+        edit_config(self.pix,self.config_smoothing)
+        run_ks_mapping()
+        self.filename = "_im3shape_r_"+str(self.pix)+"_"+str(self.config_smoothing)+"_g1"
+        self.movefiles()##Put files in out dir                                                          
+        self.analyze_ks_output()
+        os.system("mv ./out/density.npz "+c.bigfilepath+"density.npz")
+        return
+
+    def run_ks_mapping():
+        if self.weighted:
+            a = os.popen("/home/vinu/software/Python2.7/bin/python example_with_weights.py")
+        else:
+            a = os.popen("/home/vinu/software/Python2.7/bin/python example.py")
+            #a = os.popen("/home/vinu/software/Python2.7/bin/python example2.py")    
 
 def edit_config(pixel_scale,smoothing):
     f = open("config.py","r")
@@ -142,27 +176,43 @@ def edit_config(pixel_scale,smoothing):
         g.write(line)
     g.close()
         
+
+
 if __name__=='__main__':
     
+    #THESE ARE THE PARAMETERS YOU CAN TWEAK!############################
     eff_smoothing_grid = [0.5,0.75,1,1.5,2,4,8,15,20,30,40,50,60]
-
+    pixel_scale_grid = [1.0,2.0,3.0,4.0,5.0,10.0,15.0,20.0,40.0,60.0]
     config_smoothing = 0.5
     pix = 1.0
-
     zphot = False
     shape_noise = True
-    
+    weighted = True
     mag_cut_grid = [23.0]
-    cc = cc(config_smoothing,pix,zphot,shape_noise,eff_smoothing_grid)        
+    
+    pix_or_smooth = 'pix' #How do you want? Gaussian Smoothing or Pixelization?
+    ####################################################################
+    
+    cc = cc(config_smoothing,pix,zphot,shape_noise,eff_smoothing_grid,weighted,
+            pix_or_smooth=pix_or_smooth)        
+
     for current_mag_cut in mag_cut_grid:
+        cc.current_magcut = current_mag_cut
         print "Magnitude Cut: "+str(current_mag_cut)
         cc.catalogue.run_catalogue(current_mag_cut,c.ipath,"/data3/data2/home/dbrout/")
-        edit_config(pix,config_smoothing)
-        run_ks_mapping()
         filename = "_im3shape_r_"+str(pix)+"_"+str(config_smoothing)+"_g1"
-        cc.filename = filename
-        cc.current_magcut = current_mag_cut
-        cc.movefiles()##Put files in out dir
-        cc.analyze_ks_output()
-        os.system("mv ./out/density.npz "+c.bigfilepath+"density.npz")
+        
+        if pix_or_smooth == 'pix':
+            cc.run_pix_ks_mapping(pixel_scale_grid)
+        if pix_or_smooth == 'smooth':
+            cc.run_smooth_ks_mapping()
+
+        #edit_config(pix,config_smoothing)
+        #run_ks_mapping(weighted)
+        #filename = "_im3shape_r_"+str(pix)+"_"+str(config_smoothing)+"_g1"
+        #cc.filename = filename
+        #cc.current_magcut = current_mag_cut
+        #cc.movefiles()##Put files in out dir
+        #cc.analyze_ks_output(weighted)
+        #os.system("mv ./out/density.npz "+c.bigfilepath+"density.npz")
     cc.f.close()
