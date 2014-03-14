@@ -86,17 +86,18 @@ def edit_config(pixel_scale,smoothing):
 
 
 def run_ks_mapping():
-    a = os.popen("/home/vinu/software/Python2.7/bin/python example2.py")
+    a = os.popen("/home/vinu/software/Python2.7/bin/python example_with_weights.py")
     
     #a = os.popen("/home/vinu/software/Python2.7/bin/python example2.py")
     
 def analyze_ks_output(filename,eff_smoothing_grid,mag_cut,config_smoothing,pix,f):
+    
     k_fit = pf.open(c.opath+"kappamap"+filename+".fits")
     k_map = k_fit[0].data
     fg_fit = pf.open(c.opath+"fgmap_fg"+filename+".fits")
     
     #fg_map = fg_fit[0].data
-    fg_mapl = np.load(c.opath+"kappa_predicted_im3shape_r_1.0_0.5_g1.fits")
+    fg_mapl = np.load(c.opath+"kappa_predicted"+filename+".npz")
     fg_map = fg_mapl['kappa']
     
     smoothing_grid = get_smoothing(eff_smoothing_grid,config_smoothing)
@@ -106,7 +107,9 @@ def analyze_ks_output(filename,eff_smoothing_grid,mag_cut,config_smoothing,pix,f
     
     pcc(smoothing_grid,mag_cut,filename,f,config_smoothing,pix)
 
-
+def movefiles(filename):
+    os.system("mv kappamap"+filename+".fits "+c.opath+"kappamap"+filename+".fits")
+    os.system("mv fgmap_fg"+filename+".fits "+c.opath+"fgmap_fg"+filename+".fits")
 
 
 
@@ -141,6 +144,7 @@ for current_mag_cut in mag_cut_grid:
     edit_config(pix,config_smoothing)
     run_ks_mapping()
     filename = "_im3shape_r_"+str(pix)+"_"+str(config_smoothing)+"_g1"
+    movefiles(filename)
     analyze_ks_output(filename,eff_smoothing_grid,current_mag_cut,config_smoothing,pix,f)
 
 f.close()
