@@ -164,5 +164,5 @@ if __name__=='__main__':
         cc.current_magcut = current_mag_cut
         cc.movefiles()##Put files in out dir
         cc.analyze_ks_output()
-
+        os.system("mv ./out/density.npz "+c.bigfilepath+"density.npz")
     cc.f.close()

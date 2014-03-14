@@ -1,11 +1,12 @@
 pixel_scale = 1.0 #size of the pixel in arc min 
 ipath = '/data3/data2/home/dbrout/' #input directory
 opath = '/data3/data2/home/dbrout/bcckappa/out/' #output directory
+bigfilepath = '/data3/data2/home/dbrout/' #for files that wont fit in github 
 
 pipe = 'im3shape' # this is just for naming of output file
 filter = 'r' #this is just for naming of output file
-
 smooth_size = 0.5 #smoothing scale for background arcmin 
+smooth_size_n = 0.5 #smoothing scale for background arcmin 
 smooth_size_n = 0.5 #smoothing scale for background arcmin 
 
 rotate = False #rotate=True will rotate galaxies 45 deg. good for bmode
