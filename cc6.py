@@ -15,7 +15,8 @@ import config as c
 class cc:
     def __init__(self,config_smoothing = 0.5, pix = 1.0,
                  zphot = False, shape_noise = True,
-                 eff_smoothing_grid = [1.0],current_magcut = None,weighted=False):
+                 eff_smoothing_grid = [1.0],current_magcut = None,
+                 weighted=False,pix_or_smooth='smooth'):
 
         self.current_magcut = current_magcut
         self.zphot = zphot
@@ -24,6 +25,7 @@ class cc:
         self.pix = pix
         self.eff_smoothing_grid = eff_smoothing_grid
         self.weighted = weighted
+        self.pix_or_smooth = pix_or_smooth
 
         if self.zphot:
             import create_catalogue_zphot as catalogue
@@ -92,25 +94,41 @@ class cc:
         return Mask
 
     def pcc(self):
-        for sigma in self.eff_smoothing_grid:
-            fg_map_p = pf.open(c.opath+"fgmap_fg"+self.filename+"_smooth"+str(sigma)+".fits")
-            k_map_p = pf.open(c.opath+"kappamap"+self.filename+"_smooth"+str(sigma)+".fits")
-            Masks = pf.open(c.opath+"Mask_kappamap"+self.filename+"_smooth"+str(sigma)+".fits")
-
+        if self.pix_or_smooth == 'smooth':
+            for sigma in self.eff_smoothing_grid:
+                fg_map_p = pf.open(c.opath+"fgmap_fg"+self.filename+"_smooth"+str(sigma)+".fits")
+                k_map_p = pf.open(c.opath+"kappamap"+self.filename+"_smooth"+str(sigma)+".fits")
+                Masks = pf.open(c.opath+"Mask_kappamap"+self.filename+"_smooth"+str(sigma)+".fits")
+                
+                ff = np.ma.masked_array(fg_map_p[0].data.ravel(), mask=np.logical_not(Masks[0].data.ravel()))
+                kk = np.ma.masked_array(k_map_p[0].data.ravel(), mask=np.logical_not(Masks[0].data.ravel()))
+                
+                corr = np.ma.corrcoef(ff,kk)
+                print "Cross Corr np.ma:"
+                print corr
+                self.f.write(str(corr[0,1])+"\t"+str(self.current_magcut)+"\t"+str(sigma)+"\t"+str(self.pix)+"\n")
+        else:
+            fg_map_p = pf.open(c.opath+"fgmap_fg"+self.filename+"_smooth"+str(self.config_smoothing)+".fits")
+            k_map_p = pf.open(c.opath+"kappamap"+self.filename+"_smooth"+str(self.config_smoothing)+".fits")
+            Masks = pf.open(c.opath+"Mask_kappamap"+self.filename+"_smooth"+str(self.config_smoothing)+".fits")
+            
             ff = np.ma.masked_array(fg_map_p[0].data.ravel(), mask=np.logical_not(Masks[0].data.ravel()))
             kk = np.ma.masked_array(k_map_p[0].data.ravel(), mask=np.logical_not(Masks[0].data.ravel()))
-
+            
             corr = np.ma.corrcoef(ff,kk)
             print "Cross Corr np.ma:"
             print corr
-            self.f.write(str(corr[0,1])+"\t"+str(self.current_magcut)+"\t"+str(np.sqrt(sigma**2+self.config_smoothing**2))+"\t"+str(self.pix)+"\n")
+            self.f.write(str(corr[0,1])+"\t"+str(self.current_magcut)+"\t"+str(self.config_smoothing)+"\t"+str(self.pix)+"\n")
 
     #get effective smoothing by adding in quadtrature
     def get_smoothing(self):
         #self.return_smoothing_grid = self.eff_smoothing_grid
-        config_smoothing_grid = np.resize(self.config_smoothing,(len(self.eff_smoothing_grid)))
-        self.eff_smoothing_grid = np.array(self.eff_smoothing_grid)
-        self.return_smoothing_grid = np.sqrt(self.eff_smoothing_grid**2 - config_smoothing_grid**2)
+        if self.pix_or_smooth == 'smooth':
+            config_smoothing_grid = np.resize(self.config_smoothing,(len(self.eff_smoothing_grid)))
+            self.eff_smoothing_grid = np.array(self.eff_smoothing_grid)
+            self.return_smoothing_grid = np.sqrt(self.eff_smoothing_grid**2 - config_smoothing_grid**2)
+        if self.pix_or_smooth == 'pix':
+            self.return_smoothing_grid = [0.]
         return
     
     def analyze_ks_output(self):
@@ -136,19 +154,22 @@ class cc:
         os.system("mv kappamap"+self.filename+".fits "+c.opath+"kappamap"+self.filename+".fits")
         os.system("mv fgmap_fg"+self.filename+".fits "+c.opath+"fgmap_fg"+self.filename+".fits")
 
-    def run_pix_ks_mapping(self.pixel_scale_grid):
+    def run_pix_ks_mapping(self,pixel_scale_grid):
         for pix in pixel_scale_grid:
             print "Running KS_MAPPING.py for pixel size: "+str(pix)
             edit_config(pix,self.config_smoothing)
             self.filename = "_im3shape_r_"+str(pix)+"_"+str(self.config_smoothing)+"_g1"
             self.run_ks_mapping()
+            self.movefiles()
             self.analyze_ks_output()
+            os.system("mv ./out/density.npz "+c.bigfilepath+"density.npz")
+        
         return
 
     def run_smooth_ks_mapping(self):
         edit_config(self.pix,self.config_smoothing)
-        self.run_ks_mapping()
         self.filename = "_im3shape_r_"+str(self.pix)+"_"+str(self.config_smoothing)+"_g1"
+        self.run_ks_mapping()
         self.movefiles()##Put files in out dir                                                          
         self.analyze_ks_output()
         os.system("mv ./out/density.npz "+c.bigfilepath+"density.npz")
