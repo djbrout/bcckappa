@@ -5,7 +5,7 @@ import numpy.ma as ma
 import mytools as my
 import config as c
 import redmapper as rm
-from weighted_galkappa import WeightedGalKappa
+from weighted_galkappa_2d import WeightedGalKappa
 
 def GenKappa(bg_f, fg_f):
     pixel_scale = c.pixel_scale #0.9375 # size of the pixel in arc min
