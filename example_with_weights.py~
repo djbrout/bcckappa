@@ -78,7 +78,7 @@ def GenKappa(bg_f, fg_f):
 
     wn.delta_rho_3d()
     wn.kappa_predicted()
-    os.system('mv kappa_predicted.npz kappa_predicted_%s.npz'%file_root)
+    os.system('mv '+c.opath+'kappa_predicted.npz '+c.opath+'kappa_predicted_%s.npz'%file_root)
 
     return k.gamma, k.ra_b, k.dec_b, bg_f, fg_f
 
