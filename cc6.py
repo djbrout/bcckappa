@@ -10,7 +10,6 @@ import scipy.ndimage.filters as filter
 import rdcol2
 import subprocess
 import config as c
-#import dillon_v2 as catalogue
 
 class cc:
     def __init__(self,config_smoothing = 0.5, pix = 1.0,
@@ -182,12 +181,13 @@ class cc:
             a = os.popen("/home/vinu/software/Python2.7/bin/python example.py")
             #a = os.popen("/home/vinu/software/Python2.7/bin/python example2.py")    
 
-def edit_config(pixel_scale,smoothing):
+def edit_config(pixel_scale,smoothing,zs):
     f = open("config.py","r")
     lines = f.readlines()
     lines[0] = "pixel_scale = "+str(pixel_scale)+" #size of the pixel in arc min \n"
     lines[7] = "smooth_size = "+str(smoothing)+" #smoothing scale for background arcmin \n"
     lines[8] = "smooth_size_n = "+str(smoothing)+" #smoothing scale for background arcmin \n"
+    lines[12] = "zs = "+(str(x)+" ") for x in zs+" #for zs integral\n" 
     g = open("config.py","w")
     for line in lines:
         g.write(line)

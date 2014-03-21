@@ -9,6 +9,8 @@ smooth_size = 0.5 #smoothing scale for background arcmin
 smooth_size_n = 0.5 #smoothing scale for background arcmin 
 smooth_size_n = 0.5 #smoothing scale for background arcmin 
 
+zs = 0.8 #for zs integral
+
 rotate = False #rotate=True will rotate galaxies 45 deg. good for bmode
 randomize = False #randomize shear catalog
 esign = [-1, 1] #sign of the g1 and g2

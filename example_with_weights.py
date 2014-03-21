@@ -74,7 +74,7 @@ def GenKappa(bg_f, fg_f):
                   savethis=True, file_root=file_root, fg='fg')
 
 
-    wn = WeightedGalKappa(n.ra, n.dec, n.z, '.', c.smooth_size, pixel_scale, n.ra_b, n.dec_b, 5, mask.T, zs=0.8)
+    wn = WeightedGalKappa(n.ra, n.dec, n.z, '.', c.smooth_size, pixel_scale, n.ra_b, n.dec_b, 5, mask.T, zs=[.5,.6,.7,.8,.9,1.,1.1,1.2])
 
     wn.delta_rho_3d()
     wn.kappa_predicted()
