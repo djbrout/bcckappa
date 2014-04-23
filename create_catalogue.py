@@ -54,6 +54,15 @@ def run_catalogue(mag_cut,file_dir="",OUTDIR="./out"):
 	plt.ylabel("Source Distribution Counts")
 	plt.title("Z_cut = 0.5")
 	fig.savefig("source_distribution.png")
+        fig = plt.figure()
+	plt.hist(zfg,30, normed=0)
+	plt.xlabel("redshift")
+	plt.ylabel("Fg Distribution Counts")
+	plt.title("Z_cut = 0.5")
+	fig.savefig("fg_distribution.png")
 	
 	mytools.write_fits_table(OUTDIR+'foreground.fits', ['z','RA','DEC'], [zfg,RAfg,DECfg])
 	mytools.write_fits_table(OUTDIR+'background.fits', ['RA','DEC','S1','S2','W','z'], [RAbg,DECbg,GAMMA1bg,GAMMA2bg,weightsbg,zbg])
+
+
+run_catalogue(22.5,file_dir="/home/dbrout/",OUTDIR="./out")

@@ -223,7 +223,7 @@ if __name__=='__main__':
             cc.run_pix_ks_mapping(pixel_scale_grid)
         if pix_or_smooth == 'smooth':
             cc.run_smooth_ks_mapping()
-
+        raw_input()
         #edit_config(pix,config_smoothing)
         #run_ks_mapping(weighted)
         #filename = "_im3shape_r_"+str(pix)+"_"+str(config_smoothing)+"_g1"

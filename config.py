@@ -1,4 +1,4 @@
-pixel_scale = 1.0 #size of the pixel in arc min 
+pixel_scale = 20.0 #size of the pixel in arc min 
 ipath = '/data3/data2/home/dbrout/' #input directory
 opath = '/data3/data2/home/dbrout/bcckappa/out/' #output directory
 bigfilepath = '/data3/data2/home/dbrout/' #for files that wont fit in github 
